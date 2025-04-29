@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-blue: #068BA6;
+  --secondary-blue: #B0E5F0;
 }
 
 @theme inline {
@@ -12,15 +14,32 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.checkbox-input:checked+.checkbox-container {
+  background-color: #06b6d4;
+  /* cyan-500 */
+}
+
+.checkbox-input:checked+.checkbox-container .checkmark {
+  display: block;
+}
+
+.checkbox-input:not(:checked)+.checkbox-container .checkmark {
+  display: none;
+}
+
+.checkbox-container {
+  transition: background-color 0.2s ease;
 }

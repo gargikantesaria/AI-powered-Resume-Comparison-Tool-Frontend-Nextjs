@@ -43,3 +43,11 @@ body {
 .checkbox-container {
   transition: background-color 0.2s ease;
 }
+
+.tooltip-trigger:hover+.tooltip-content,
+.tooltip-trigger:focus+.tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  display: inline-block;
+}

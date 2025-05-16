@@ -1,10 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import * as pdfjsLib from 'pdfjs-dist';
-
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.mjs';
-
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -100,48 +98,73 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles = Array.from(e.target.files || []);
         e.target.value = ""; // allow re-uploading same file again
-
-        const mergedFiles = [...selectedFiles, ...newFiles].slice(0, 3);
-
-        const validFiles: File[] = [];
-
-        for (const file of mergedFiles) {
+        const validNewFiles: File[] = [];
+        for (const file of newFiles) {
             const isAllowedType = staticValue.allowedResumeFilesType.includes(file.type);
             const isNonEmpty = file.size > 0 && file.size <= 10.1 * 1024 * 1024;
             const isReadable = await isReadableFile(file);
-
             if (isAllowedType && isNonEmpty && isReadable) {
-                if ((file.type === "application/pdf" || file.name.endsWith(".pdf"))) {
+                if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
                     try {
-                        const arrayBuffer = await file.arrayBuffer(); // this is the file content
+                        const arrayBuffer = await file.arrayBuffer();
                         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        pdf.numPages <= 4 ?
-                            validFiles.push(file) : emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.fileSizeExceede);
+                        if (pdf.numPages <= 4) {
+                            const existingError = document.getElementById("resumeErrorField");
+                            if (existingError) {
+                                existingError.innerHTML = "";
+                            }
+                            validNewFiles.push(file);
+                        } else {
+                            setTimeout(() => {
+                                emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.fileSizeExceede);
+                            }, 60);
+                        }
                     } catch (err) {
                         setTimeout(() => {
                             emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.emptyCorruptedFile);
                         }, 50);
                     }
                 } else {
-                    validFiles.push(file);
+                    validNewFiles.push(file);
+                }
+            } else {
+                if (!isNonEmpty && isAllowedType) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    if (pdf.numPages >= 4) {
+                        setTimeout(() => {
+                            emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.filesizeError);
+                        }, 60);
+                    }
+                } else if (isAllowedType) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    if (pdf.numPages <= 4) {
+                        setTimeout(() => {
+                            emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.maxUploadResume);
+                        }, 60);
+                    }
+                } else if (!isAllowedType) {
+                    setTimeout(() => {
+                        emptyCorruptedFileChangesDisplay(staticValue.resumeFormError.resumeFileTypeError);
+                    }, 60);
                 }
             }
         }
 
-        // Remove duplicate files (same name + size)
-        const uniqueValidFiles = validFiles.filter(
+        // Merge and remove duplicates
+        const mergedValidFiles = [...selectedFiles, ...validNewFiles];
+        const uniqueValidFiles = mergedValidFiles.filter(
             (file, index, self) =>
                 index === self.findIndex(f => f.name === file.name && f.size === file.size)
-        );
+        ).slice(0, 3); // limit to 3
 
-        // ✅ Pass all files (including invalid) to Zod for proper error handling
-        setValue("resumeFiles", mergedFiles, {
+        setValue("resumeFiles", uniqueValidFiles, {
             shouldValidate: true,
             shouldDirty: true,
             shouldTouch: true,
         });
         await trigger("resumeFiles");
-        //  Only keep unique valid ones for preview
         setSelectedFiles(uniqueValidFiles);
     };
 
@@ -155,12 +178,8 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                 }, 50);
                 resolve(false);
                 return;
-            } else {
-                const existingError = document.getElementById("resumeErrorField");
-                if (existingError) {
-                    existingError.innerHTML = "";
-                }
             }
+
             const reader = new FileReader();
             reader.onload = async () => {
                 const buffer = reader.result as ArrayBuffer;
@@ -191,22 +210,42 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
         });
     };
 
-    const emptyCorruptedFileChangesDisplay = (erroMessage: string) => {
-        let errorField = document.getElementById('resumeErrorField');
-        if (errorField) {
-            errorField.innerHTML = erroMessage;
+    const emptyCorruptedFileChangesDisplay = (errorMessage: string) => {
+        const existingError = document.getElementById('resumeErrorField');
+
+        // If error element already exists, update its message
+        if (existingError) {
+            // Get all elements with the same ID
+            const allErrors = document.querySelectorAll('#resumeErrorField');
+
+            allErrors.forEach((el) => {
+                if (el !== existingError) {
+                    el.remove(); // safely remove any duplicate error elements
+                }
+            });
+
+            // Update the message on the existing one
+            existingError.textContent = errorMessage;
         } else {
+            // Else, create a new error element
             const label = document.getElementById('fileUploadLabel');
             const targetDiv = label?.querySelector('.text-center');
+
             if (label && targetDiv) {
                 const newError = document.createElement('p');
                 newError.id = 'resumeErrorField';
                 newError.className = 'text-red-500 text-sm mb-0';
-                newError.textContent = erroMessage;
+                newError.textContent = errorMessage;
+
+                // Remove any other error <p> tags inside targetDiv if somehow duplicated manually
+                const allErrors = targetDiv.querySelectorAll('#resumeErrorField');
+                allErrors.forEach(el => el.remove());
+
                 targetDiv.appendChild(newError);
             }
         }
-    }
+    };
+
 
     const onSubmit = async (data: ResumeFormData) => {
         const formData = new FormData();
@@ -258,6 +297,7 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
             setIsAPIError(errorMessage);
             setIsLoading(false);
         }
+
 
     };
 
@@ -325,8 +365,17 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                                             {/* Left Section */}
                                             <div className="lg:w-10/20 w-full">
                                                 {/* Heading */}
-                                                <p className="text-[23px] sm:text-[28px] text-[#181D27] font-bold font-(family-name:--font-inter) mb-1">
-                                                    Upload the Job Description
+                                                <p className="text-[23px] sm:text-[28px] text-[#181D27]  font-(family-name:--font-inter) mb-1 flex items-center gap-1">
+                                                    <span className="font-bold">Upload the Job Description</span>
+                                                    <span className=" p-1 rounded-md relative" tabIndex={0}>
+                                                        <Image src="/assets/info.png" alt="informationicon" height={20} width={20} className="w-5 h-5 tooltip-trigger  cursor-pointer" />
+                                                        <span className="absolute tooltip-content left-1/5 w-[250px] p-2 text-left top-7 left-[-100px] sm:left-[0px] transform -translate-x-1/2 bg-(--primary-blue) text-white text-xs rounded-md px-3 opacity-0  transition-opacity duration-200  hidden">
+                                                            To gain accuracy in the results, start by specifying the Job Title in the first row, followed by the description.<br /><br />
+                                                            <strong className="mt-3">Example:</strong><br />
+                                                            Software Engineer | Minimum 1 year of experience<br />
+                                                            Then, continue with the detailed job description below.
+                                                        </span>
+                                                    </span>
                                                 </p>
                                                 <p className="text-[#979797] leading-[18px] text-[16px] mb-5 font-(family-name:--font-dm-sans)">
                                                     Please enter the job description here. Include details about the role, responsibilities, and required qualifications.
@@ -355,20 +404,15 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                                                                 onChange={(e) => {
                                                                     const checked = e.target.checked;
                                                                     const currentCompare = getValues("compare") || [];
-
                                                                     // Determine whether the item is from predefined criteria or custom criteria
                                                                     const isCustom = index >= criteria.length; // If index is beyond predefined criteria, it's a custom criteria
                                                                     const val = isCustom ? customCriteria[index - criteria.length] : criteria[index]; // Adjust the value depending on the source
-
                                                                     const isValid = val.trim().length > 0; // Check if custom criteria are valid
-
                                                                     // Update the comparison array based on checked status and validity of the value
                                                                     let updatedCompare;
                                                                     updatedCompare = checked && isValid
                                                                         ? [...new Set([...currentCompare, val])]  // Add value if valid and checked
                                                                         : currentCompare.filter((c) => c !== val); // Remove value if unchecked or invalid
-
-
                                                                     setValue("compare", updatedCompare); // Update the form value
                                                                     trigger("compare"); // Trigger validation
                                                                 }}
@@ -422,7 +466,6 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                                                                                 e.key === "Tab" ||
                                                                                 e.key === "ArrowLeft" ||
                                                                                 e.key === "ArrowRight";
-
                                                                             const cursorAtStart = e.currentTarget.selectionStart === 0;
                                                                             // Prevent invalid key OR space at the beginning
                                                                             if (!isValidKey || (e.key === " " && cursorAtStart)) {
@@ -479,7 +522,7 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                                                     <label htmlFor="file-upload" id="fileUploadLabel" className={`flex items-center justify-center w-full h-full ${selectedFiles?.length >= 3 ? 'cursor-no-drop' : 'cursor-pointer'} p-4`}>
                                                         <div className="text-center">
                                                             <div className="flex justify-center">
-                                                                <img src="assets/browse-icon.svg" alt="Browse icon" className="h-9 w-9 mb-2" />
+                                                                <img src="/assets/browse-icon.svg" alt="Browse icon" className="h-9 w-9 mb-2" />
                                                             </div>
                                                             <p className="text-black text-sm font-bold mb-2">Browse</p>
                                                             <p className="text-sm  text-[#2298BD] opacity-[0.7] mb-1 px-1 font-(family-name:--font-dm-sans)">

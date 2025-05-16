@@ -7,7 +7,7 @@ export default function footer() {
                 <div className="flex flex-wrap items-center gap-2">
                     <span className='font-medium footer-title'>Tech Used;</span>
                     <div className="bg-[#E4FBFF] p-1 rounded-md relative group cursor-pointer">
-                        <Image src="assets/next-js.svg" alt="Next" className="w-5 h-5" height={15} width={15} />
+                        <Image src="/assets/next-js.svg" alt="Next" className="w-5 h-5" height={15} width={15} />
                         <span className="absolute left-1/5 w-[66px] text-center -top-7 transform -translate-x-1/2 bg-(--primary-blue) text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200  inline-block">
                             Next.js
                         </span>

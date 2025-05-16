@@ -14,13 +14,12 @@ export const staticValue = {
         maxUploadResume: 'You can upload maximum of 3 resumes!',
         resumeFileTypeError: 'Only .pdf files are allowed!',
         filesizeError: 'Each file must be 10MB or smaller!',
-        documentFileCorrupted: 'Uploaded files cannot be empty or corrupted!',
         customCompareFiledEmpty: 'Custom comparison fields cannot be empty!',
         fileSizeExceede: "The file should contain no more than 4 pages!"
     },
     allowedResumeFilesType: [
         "application/pdf",
     ],
-    defaultKeyWordForAllComapreValue: ['rate', 'summary', 'relevancy'],
+    defaultKeyWordForAllComapreValue: ['summary', 'relevancy'],
     defaultKeyWords: ['skills', 'experience', 'certifications', 'education', 'projects']
 }

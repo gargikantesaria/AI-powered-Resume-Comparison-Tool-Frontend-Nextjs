@@ -111,28 +111,56 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
     }
 
     function FormateUI(value: any, criteria: string): JSX.Element {
-        const textStyle = "text-[14px] text-[#000000] wrap-break-word d-block w-[200px] pr-5";
+        const textStyle = "text-[14px] text-[15px] text-[#000000] wrap-break-word d-block w-[250px] pr-5";
 
-        // Handle the 'rate' case
-        if (criteria === 'rate') {
-            if (typeof value === 'number') {
-                return <span className='inline-flex items-center justify-center w-[200px]'><strong>{value}</strong> / 10</span>;
-            }
-            return <span className='inline-flex items-center justify-center w-[200px]'><strong>0</strong> / 10</span>;
-        }
-
-        // Handle 'relevancy' case
         if (criteria === 'relevancy') {
-            if (typeof value === 'boolean') {
-                return <span className='inline-flex items-center justify-center w-[200px]'>{value ? '✔️' : '❌'}</span>;
+            let numericValue = typeof value === 'string' && value.includes('%')
+                ? parseFloat(value.replace('%', ''))
+                : parseFloat(value);
+
+            let color = 'text-gray-500';
+
+            if (!isNaN(numericValue)) {
+                if (numericValue <= 60) {
+                    color = 'text-red-600';
+                } else if (numericValue <= 84) {
+                    color = 'text-orange-500';
+                } else {
+                    color = 'text-green-600';
+                }
             }
-            return <span className='inline-flex items-center justify-center w-[200px]'>{value == '-' ? '❌' : ''}</span>;
+
+            return (
+                !isNaN(numericValue) ? (
+                    <span className={`inline-flex items-center justify-center w-[250px] font-semibold ${color}`}>
+                        {`${numericValue}%`}
+                    </span>
+                ) : (
+                    <>
+                        <Image
+                            src="/assets/caution.png"
+                            alt="Caution"
+                            height={20}
+                            width={20}
+                            className="w-7 h-7 m-auto"
+                        />
+                        <p className="text-center text-[#00B4D8] font-bold mt-1 text-[15px]">
+                            Not Detected
+                        </p>
+                    </>
+                )
+            );
+
         }
+
 
         // Case 1: When value is a string
         if (typeof value === 'string') {
             if (value === '-') {
-                return <Image src="/assets/caution.png" alt="Caution" height={20} width={20} className="w-7 h-7 m-auto" />
+                return <>
+                    <Image src="/assets/caution.png" alt="Caution" height={20} width={20} className="w-7 h-7 m-auto" />
+                    <p className="text-center text-[#00B4D8] font-bold mt-1 text-[15px]">Not Detected</p>
+                </>
             }
             return <span className={textStyle}>{value}</span>;
         }
@@ -140,7 +168,7 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
         // Case 2: When value is an array of strings (render as a list)
         if (Array.isArray(value) && value.length > 0 && value.every(item => typeof item === 'string')) {
             return (
-                <ul className="list-disc pl-5 d-block w-[200px]">
+                <ul className="list-disc pl-5 d-block w-[250px]">
                     {value.map((item, index) => (
                         <li key={index} className={textStyle}>
                             {item}
@@ -157,7 +185,7 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
             value.every(item => typeof item === 'object' && !Array.isArray(item))
         ) {
             return (
-                <ul className="list-disc pl-5 d-block w-[200px]">
+                <ul className="list-disc pl-5 d-block w-[250px]">
                     {value.map((item, index) => (
                         <li key={index} className={textStyle}>
                             {Object.entries(item).map(([key, val], subIndex) => (
@@ -173,7 +201,10 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
         }
 
         // Default case: If value is not a string, array, or object
-        return <Image src="/assets/caution.png" alt="Caution" height={20} width={20} className="w-7 h-7 m-auto" />
+        return <>
+            <Image src="/assets/caution.png" alt="Caution" height={20} width={20} className="w-7 h-7 m-auto" />
+            <p className="text-center text-[#00B4D8] font-bold mt-1 text-[15px]">Not Detected</p>
+        </>
     }
 
     if (resumeData === null) {
@@ -188,17 +219,17 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
         <>
             {!hasUndefinedValues ? (
                 <div className=" p-3">
-                    <p className="text-center text-[#021518] text-[25px]  font-bold mb-4">Comparison</p>
+                    <p className="text-center text-[#021518] text-[33px]  font-bold mb-6">Profile Analysis</p>
                     {/* <div className="overflow-x-auto"> */}
-                    <div className="max-w-[1000px] mx-auto overflow-x-auto" >
-                        <table className="text-center table-fixed mx-auto max-w-[1000px]">
+                    <div className="max-w-[1500px] mx-auto overflow-x-auto" >
+                        <table className="text-center table-fixed mx-auto max-w-[1500px]">
                             <thead className="border border-[#00B4D8]">
                                 <tr className="bg-white">
-                                    <th className="p-2 text-[#03A2C2] min-w-[250px] max-w-[250px] w-[250px] font-semibold border border-[#00B4D8] h-[100px] align-middle text-[18px]">Criteria</th>
+                                    <th className="p-2 text-[#03A2C2] min-w-[250px] max-w-[250px] w-[250px] font-semibold border border-[#00B4D8] h-[100px] align-middle text-[20px]">Criteria</th>
                                     {resumeData?.map((candidate, i) => (
                                         <th
                                             key={i}
-                                            className="p-2 text-black w-[200px] min-w-[200px] max-w-[200px] font-semibold border border-[#00B4D8] align-middle text-[18px]"
+                                            className="p-2 text-black w-[250px] min-w-[250px] max-w-[250px] font-semibold border border-[#00B4D8] align-middle text-[20px]"
                                         >
                                             {(
                                                 (candidate?.name || `Candidate ${i + 1}`)
@@ -215,7 +246,7 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
                             <tbody>
                                 {compareKeys.map((criteria: string, i: Key | null | undefined) => (
                                     <tr key={i} className="border border-[#00B4D8]">
-                                        <td className="text-[14px] text-[#03A2C2] font-semibold p-2 border border-[#00B4D8] align-middle min-h-[150px]">
+                                        <td className="text-[20px] text-[#03A2C2] font-semibold p-2 border border-[#00B4D8] align-middle min-h-[150px]">
                                             {formatCriteriaKey(criteria)}
                                         </td>
                                         {resumeData?.map((candidate, j) => {
@@ -237,7 +268,7 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys }: a
                             </tbody>
                         </table>
                     </div>
-                    <div className="text-right max-w-[950px] mx-auto mt-6">
+                    <div className="text-right max-w-[1150px] mx-auto mt-6">
                         <button
                             className="cursor-pointer hover:bg-white w-[150px] font-semibold py-2 border border-[#00B4D8] rounded-full hover:text-black transition duration-200 text-white bg-[#00B4D8]"
                             onClick={onReset}

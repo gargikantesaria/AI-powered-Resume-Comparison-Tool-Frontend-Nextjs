@@ -1,14 +1,13 @@
-# AI Resume Comparison Tool
+# AI Resume Analyzer Tool
 
-An AI-powered resume comparison tool built with [Next.js](https://nextjs.org), designed to efficiently compare job descriptions with candidate resumes using advanced AI algorithms. This tool helps users quickly analyze and evaluate resumes, simplifying the process of matching candidates to job requirements.
+An AI-powered resume analyzer tool built with [Next.js](https://nextjs.org), designed to efficiently compare job descriptions with candidate resumes using advanced AI algorithms. This tool helps users quickly analyze and evaluate resumes, simplifying the process of matching candidates to job requirements.
 
 ## Features
 
 - **Resume Upload**: Upload candidate resumes in PDF format to be parsed and analyzed.
 - **Keyword Extraction**: Based on AI algorithm extract default keywords (skills, education, etc.) and also allowing users to add custom keywords for further extraction.
 - **Summary Generation**: Generate a summary of the uploaded resume for a quick overview.
-- **Relevancy Check**: Evaluate the relevancy of the resume based on extracted information and job description to determine how closely it aligns with it.
-- **Resume Rating**: Rate the uploaded resume based on criteria and job description.
+- **Relevancy Check**: Analyzes the candidate’s job title, skills, and experience from the resume and compares them with the job description to determine how well they align. Returns a relevance score ranging from 0 to 100, where a higher score indicates a stronger match.
 - **User-Friendly Interface**: Simple and intuitive interface for users to upload and analyze candidate resumes.
 
 ## 🛠 Tech Stack

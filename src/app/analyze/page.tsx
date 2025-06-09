@@ -13,12 +13,24 @@ const UploadResume = dynamic(() => import("../component/uploadResume"), {
 
 export default function Analyze() {
     const [resumeResponse, setResumeResponse] = useState(null);
+    const [oldFormValues, setOldFormValues] = useState(null); // holds form data
     const [compareKeys, setCompareKeys] = useState(['Rate', 'Summary', 'relevancy']);
     const [isReset, setIsReset] = useState(true);
+    const [isEdit, setIsEdit] = useState(false);
 
     const handleReset = () => {
         setResumeResponse(null);
-        setIsReset(true); // Set reset state to true when reset happens
+        setIsReset(true);
+        setIsEdit(false);
+    };
+
+    const handleOldFormValues = (formData: any) => {
+        setOldFormValues(formData); // ✅ Save form values here
+    };
+
+    const OnEdit = () => {
+        setResumeResponse(null);
+        setIsEdit(true);
     };
 
     return (
@@ -27,6 +39,7 @@ export default function Analyze() {
                 <ResumeResult
                     resumeResponse={resumeResponse}
                     onReset={handleReset}
+                    onEdit={OnEdit}
                     compareKeys={compareKeys}
                 />
             ) : (
@@ -34,6 +47,9 @@ export default function Analyze() {
                     shareResumeResponse={setResumeResponse}
                     keys={setCompareKeys}
                     isReset={isReset}
+                    isEdit={isEdit}
+                    oldFormValuesData={oldFormValues}
+                    setOldFormValues={handleOldFormValues}
                 />
             )}
         </>

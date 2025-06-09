@@ -62,7 +62,7 @@ const resumeFormSchema = z.object({
 
 type ResumeFormData = z.infer<typeof resumeFormSchema>;
 
-export default function UploadResume({ shareResumeResponse, isReset, keys }: { shareResumeResponse: any, isReset: boolean, keys: any }) {
+export default function UploadResume({ shareResumeResponse, isReset, keys, isEdit, oldFormValuesData, setOldFormValues }: { shareResumeResponse: any, isReset: boolean, keys: any, isEdit: boolean, oldFormValuesData: any, setOldFormValues: any }) {
     const [customCriteria, setCustomCriteria] = useState<string[]>([]);
     const criteria = staticValue.resumeCriteria;
     const {
@@ -260,7 +260,6 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                 : JSON.stringify(data?.compare || [])
         );
         setIsLoading(true);
-
         try {
             const response = await fetch(PostAPI.analyseResume(), {
                 method: 'POST',
@@ -283,6 +282,11 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                 key.toLowerCase().replace(/\s+/g, '_')
             );
             keys(lowercaseKeys);
+            setOldFormValues({
+                jobDescription: data.jobDescription,
+                compare: additionalKeys === staticValue.defaultKeyWords ? [] : additionalKeys,
+                resumeFiles: data.resumeFiles
+            });
             shareResumeResponse(responseData);
         } catch (error: any) {
             // Handle network errors or unexpected exceptions
@@ -297,8 +301,6 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
             setIsAPIError(errorMessage);
             setIsLoading(false);
         }
-
-
     };
 
     const handleRemoveCustom = (index: number) => {
@@ -323,6 +325,23 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
             setCustomCriteria([]);
         }
     }, [isReset, reset]);
+
+    useEffect(() => {
+        if (isEdit && oldFormValuesData) {
+            setValue("jobDescription", oldFormValuesData.jobDescription);
+            setValue("compare", oldFormValuesData.compare || []);
+            setValue("resumeFiles", oldFormValuesData.resumeFiles);
+            setSelectedFiles(oldFormValuesData.resumeFiles);
+            setCustomCriteria(
+                Array.isArray(oldFormValuesData?.compare)
+                    ? oldFormValuesData.compare.filter(
+                        (item: string) => !staticValue.defaultKeyWords.includes(item.toLowerCase())
+                    )
+                    : []
+            );
+
+        }
+    }, [isEdit, oldFormValuesData]);
 
     return (
         <>
@@ -359,7 +378,7 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                     ) : (
                         <>
                             {
-                                isReset && (
+                                (isReset || isEdit) && (
                                     <form onSubmit={handleSubmit(onSubmit)}>
                                         <div className="flex flex-col lg:flex-row lg:gap-25 lg:pt lg:ps-25 lg:pe-25 max-lg:gap-0 max-lg:ps-8 max-lg:pe-8 gap-0 mb-3">
                                             {/* Left Section */}
@@ -557,7 +576,7 @@ export default function UploadResume({ shareResumeResponse, isReset, keys }: { s
                                                 }
                                                 <div className="flex justify-end gap-4 w-full">
                                                     <button
-                                                        className="w-[40%] px-6 py-2 font-(family-name:--font-plus-jakarta) rounded-full font-semibold text-white bg-cyan-500 hover:bg-cyan-600 transition cursor-pointer"
+                                                        className="min-sm:w-[40%] px-6 py-2 font-(family-name:--font-plus-jakarta) rounded-full font-semibold text-white bg-cyan-500 hover:bg-cyan-600 transition cursor-pointer"
                                                         type="submit"
                                                     >
                                                         Analyze

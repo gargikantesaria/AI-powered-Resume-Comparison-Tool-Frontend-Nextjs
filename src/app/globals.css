@@ -55,6 +55,6 @@ body {
 @media screen and (max-width: 657px) {
   .tooltip-trigger {
     height: auto !important;
-    width: 30px !important;
+    width: 20px !important;
   }
 }

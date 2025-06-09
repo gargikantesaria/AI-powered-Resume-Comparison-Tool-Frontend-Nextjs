@@ -346,7 +346,7 @@ export default function UploadResume({ shareResumeResponse, isReset, keys, isEdi
     return (
         <>
             {
-                isError ? (
+                isError !== null ? (
                     <div className="flex items-center justify-center h-[-webkit-fill-available]  max-w-screen-lg w-[-webkit-fill-available] mx-auto p-3">
                         <div className="bg-white  p-8 text-center max-w-md w-[300px] ">
                             <div className="flex justify-center mb-4">

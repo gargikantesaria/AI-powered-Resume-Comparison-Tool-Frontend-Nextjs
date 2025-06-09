@@ -271,7 +271,7 @@ export default function ResumeResult({ resumeResponse, onReset, compareKeys, onE
                     <div className="text-right max-w-[1150px] mx-auto mt-6">
                         <button
                             onClick={onEdit}
-                            className="cursor-pointer max-sm:mb-3 sm:mr-3 bg-white hover:bg-[#00B4D8] w-[150px] font-semibold py-2 border border-[#00B4D8] rounded-full hover:text-white transition duration-200 text-black"
+                            className="cursor-pointer max-sm:mb-3 min-sm:mr-3 bg-white hover:bg-[#00B4D8] w-[150px] font-semibold py-2 border border-[#00B4D8] rounded-full hover:text-white transition duration-200 text-black"
                         >
                             Edit
                         </button>
